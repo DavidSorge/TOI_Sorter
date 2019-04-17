@@ -26,7 +26,7 @@ Here's the overall gameplan
 # 0: Imports
 #-------------------------------------------------------------------------------
 
-# import bs4
+
 import time
 start_time = time.time()
 import re
@@ -37,11 +37,12 @@ from shutil import copy
 # 1-4: XML opener
 #-------------------------------------------------------------------------------
 """
-def construct_file_name(xml_name, subfolder_path, mainfolder_path):
-    #Puts together parts to form a complete file path
-    xml_name = mainfolder_path + subfolder_path + "\\" + xml_name
-    return xml_name
 
+# This is a bunch of script implemented using Beautiful Soup that (eventually) 
+# does the same thing as metadata_getter (below), but in initial tests took
+# something like 6 times as long.
+
+import bs4
 
 def parse_file(xml_file_path):
     #opens xml file, reads it, and parses the input
@@ -83,7 +84,7 @@ def metadata_getter(xml_file_path):
     file_metadata = {}
     d = re.compile(r'<RecordTitle>(.*)</RecordTitle>|<NumericPubDate>(.*)</NumericPubDate>|<ObjectType>([^<]*)</ObjectType>*') # creates re.compile object
     metadata_matrix = d.findall(raw_xml)    # creates a list of tuples containing the intended tag strings
-    headline = metadata_matrix[0][0]    # grabs items from the list and puts them into a library
+    headline = metadata_matrix[0][0]    # grabs items from the tuples and puts them into a library
     numeric_date = metadata_matrix[1][1]
     category = metadata_matrix[-1][-1]
     file_metadata["year"] = numeric_date[0:4]
@@ -143,14 +144,3 @@ def sort_all_xmls():
     print("Sorted {0} files in {1} seconds".format(counter, elapsed))
 
 sort_all_xmls()
-
-# Initial file locations as tests pending implementation of 8 below.
-
-
-"""
-raw_main_folder = r"XML\18380101_20081231"
-raw_subfolder = r"\TimesOfIndia_20170928205839_00001"
-xml_file_name = r"230850695.xml"
-
-xml_file = construct_file_name(xml_file_name, raw_subfolder, raw_main_folder)
-"""
