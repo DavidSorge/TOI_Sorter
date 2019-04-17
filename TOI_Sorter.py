@@ -78,7 +78,7 @@ def sort_file(xml_file):
     file_metadata = metadata_getter(xml_file)
     new_directory = make_nested_directory(file_metadata)
     file_name = file_metadata["headline"].lower().replace(" ","_") + ".xml"
-    copy(xml_file, new_directory + r"/" + file_name)
+    copy(xml_file, os.path.join(new_directory,file_name))
 
 #-------------------------------------------------------------------------------
 # 8: Implements the code above for all xmls in CWD's containing folder.
