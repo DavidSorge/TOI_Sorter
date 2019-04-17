@@ -10,7 +10,7 @@
 #-------------------------------------------------------------------------------
 
 """
-Here's the overall gameplan
+Overall specifications:
 1:☺ Import an XML file from toi_archive_raw 
 2:☺ Grab the year, month, and day of publication.
 3:☺ Grab the Article Classification for the article.
@@ -34,55 +34,16 @@ import os
 from shutil import copy
 
 #-------------------------------------------------------------------------------
-# 1-4: XML opener
+# 1-4: Gets necessary metadata from xml file
 #-------------------------------------------------------------------------------
-"""
-
-# This is a bunch of script implemented using Beautiful Soup that (eventually) 
-# does the same thing as metadata_getter (below), but in initial tests took
-# something like 6 times as long.
-
-import bs4
-
-def parse_file(xml_file_path):
-    #opens xml file, reads it, and parses the input
-    with open(xml_file_path) as input_file:
-        raw_xml = input_file.read()
-    parsed_xml = bs4.BeautifulSoup(raw_xml, "lxml-xml")
-    return parsed_xml
-
-
-def category_getter_bs4(parsed_xml):
-    #Makes a list of all strings with <ObjectType> tags in parsed_xml and returns the last one
-    object_tags = parsed_xml.find_all("ObjectType")
-    object_strings = []
-    for object_tag in object_tags:
-        object_tag = object_tag.string
-        object_strings.append(object_tag)
-    category = object_strings[-1]
-    return category
-
-def metadata_getter_bs4(xml_file_path):
-    #Places publication date and headline from a given xml file in a library
-    file_metadata = {}
-    parsed_xml = parse_file(xml_file_path)
-    numeric_date = parsed_xml.NumericPubDate.string
-    file_metadata["year"] = numeric_date[0:4]
-    file_metadata["month"] = numeric_date[4:6]
-    file_metadata["day"] = numeric_date[6:]
-    headline = parsed_xml.RecordTitle.string
-    headline=headline.lower()
-    file_metadata["headline"] = headline
-    file_metadata["category"] = category_getter_bs4(parsed_xml)
-    return file_metadata
-"""
 
 def metadata_getter(xml_file_path):
     """Places publication date and headline from a given xml file in a library"""
     with open(xml_file_path) as input_file:
         raw_xml = input_file.read()
     file_metadata = {}
-    d = re.compile(r'<RecordTitle>(.*)</RecordTitle>|<NumericPubDate>(.*)</NumericPubDate>|<ObjectType>([^<]*)</ObjectType>*') # creates re.compile object
+    d = re.compile(r'<RecordTitle>(.*)</RecordTitle>|<NumericPubDate>(.*)</NumericPubDate>|<ObjectType>([^<]*)</ObjectType>*') 
+        # creates re.compile object that grabs the contents of RecordTitle, NumericPubDate and ObjectType tags.
     metadata_matrix = d.findall(raw_xml)    # creates a list of tuples containing the intended tag strings
     headline = metadata_matrix[0][0]    # grabs items from the tuples and puts them into a library
     numeric_date = metadata_matrix[1][1]
@@ -90,14 +51,14 @@ def metadata_getter(xml_file_path):
     file_metadata["year"] = numeric_date[0:4]
     file_metadata["month"] = numeric_date[4:6]
     file_metadata["day"] = numeric_date[6:]
-    file_metadata["headline"] = headline.lower()
+    file_metadata["headline"] = headline
     file_metadata["category"] = category
     return file_metadata
     
+#-------------------------------------------------------------------------------
+# 5-7: Uses the metadata to file the xml file in a new data structure
+#-------------------------------------------------------------------------------
 
-#-------------------------------------------------------------------------------
-# 5-7: Sorted File creator
-#-------------------------------------------------------------------------------
 def make_nested_directory(file_metadata):
     """Unless it already exists, creates directory
     \toi_archive_sorted\year\month\day\classification
@@ -120,11 +81,11 @@ def sort_file(xml_file):
     copy(xml_file, new_directory + r"/" + file_name)
 
 #-------------------------------------------------------------------------------
-# 8: Implementation for all XMLs in current working directory and subdirectories
+# 8: Implements the code above for all xmls in CWD's containing folder.
 #-------------------------------------------------------------------------------
 
 def get_xml_file_list():
-    """returns a list of the relative paths for all .xml files
+    """Returns a list of the relative paths for all .xml files
     in current working directory and subdirectories"""
     file_list = []
     for root, dirs, files in os.walk('..'):
@@ -135,6 +96,7 @@ def get_xml_file_list():
 
 
 def sort_all_xmls():
+    """Sorts all xmls in the CWD's containing folder (recursive)"""
     files = get_xml_file_list()
     counter = 0
     for file in files:
