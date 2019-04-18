@@ -74,10 +74,12 @@ def make_nested_directory(file_metadata):
 def sort_file(xml_file):
     """Saves a copy of an xml file in directory
     \toi_archive_sorted\year\month\day\classification
-    naming it 'title.xml'"""
+    naming it 'headline.xml'"""
     file_metadata = metadata_getter(xml_file)
     new_directory = make_nested_directory(file_metadata)
-    file_name = file_metadata["headline"].lower().replace(" ","_") + ".xml"
+    file_name = file_metadata["headline"].lower()
+    translation_table = file_name.maketrans("""<>:"/|?*""", """--------""")
+    file_name.translate(translation_table).replace(" ","_") + ".xml"
     copy(xml_file, os.path.join(new_directory,file_name))
 
 #-------------------------------------------------------------------------------
