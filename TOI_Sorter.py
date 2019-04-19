@@ -103,11 +103,18 @@ def sort_file(xml_file):
 
 
 def get_folder_list():
-    """Returns a list of the relative paths for all .xml files
-    in relevant directory"""
+    """
+    Returns a list of the relative paths for all .xml files
+    in relevant directory
+    """
+    
     return os.listdir(r'..\XML\18380101_20081231')
     
 def list_xmls_in_folder(folder):
+    """
+    Returns a list of all the files in a folder
+    """
+    
     print("Now processing", folder)
     folder_path = os.path.join(r'..\XML\18380101_20081231', folder)
     file_list = os.listdir(folder_path)
@@ -118,7 +125,7 @@ def sort_all_xmls():
 
     # Sort files
     start_time = time.time()
-    files = get_xml_file_list()
+    counter = 0
     for folder in get_folder_list():
         files = list_xmls_in_folder(folder)
         for file in files:   
@@ -126,7 +133,7 @@ def sort_all_xmls():
             file = os.path.join(r'..\XML\18380101_20081231', folder, file)
             sort_file(file)
     elapsed = time.time() - start_time
-    print(f"Sorted {len(files)} files in {elapsed} seconds")
+    print(f"Sorted {counter} files in {elapsed} seconds")
     frequency = 2500
     duration = 500
     winsound.Beep(frequency, duration)
