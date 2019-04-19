@@ -47,16 +47,17 @@ def metadata_getter(xml_file_path):
 
     # Extract Metadata
     file_metadata = {}
+    # create a re.compile object that grabs the contents of RecordTitle, NumericPubDate and ObjectType tags.
     d = re.compile(r'<RecordTitle>(.*)</RecordTitle>|<NumericPubDate>(.*)</NumericPubDate>|<ObjectType>([^<]*)</ObjectType>*')
-        # creates re.compile object that grabs the contents of RecordTitle, NumericPubDate and ObjectType tags.
-    metadata_matrix = d.findall(raw_xml)    # creates a list of tuples containing the intended tag strings
-    numeric_date = metadata_matrix[1][1]
+    # creates a list of tuples containing the intended tag strings
+    metadata_matrix = d.findall(raw_xml)    
 
     # Assign entries to dictionary
+    numeric_date = metadata_matrix[1][1]
     file_metadata["year"] = numeric_date[0:4]
     file_metadata["month"] = numeric_date[4:6]
     file_metadata["day"] = numeric_date[6:]
-    file_metadata["headline"] = metadata_matrix[0][0]
+    file_metadata["headline"] = metadata_matrix[0][0][0:30]
     file_metadata["category"] = metadata_matrix[-1][-1]
 
     return file_metadata
@@ -72,7 +73,7 @@ def make_nested_directory(file_metadata):
     and returns the path of that directory.
     """
 
-    file_metadata["category"] = file_metadata["category"].lower().replace(r"/",r"_").replace(" ","_")
+    file_metadata["category"] = file_metadata["category"].lower().translate(str.maketrans('','', string.punctuation))
     path_structure = ["year", "month", "day", "category"]
     directory = r"..\..\toi_archive_sorted"
 
@@ -86,7 +87,8 @@ def sort_file(xml_file):
     """
     Saves a copy of an xml file in directory
     \toi_archive_sorted\year\month\day\classification
-    naming it 'headline.xml'
+    naming it 'headline.xml', after dropping
+    case distinctions and punctuation.
     """
 
     file_metadata = metadata_getter(xml_file)
