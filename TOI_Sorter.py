@@ -31,6 +31,7 @@ import time
 import re
 import os
 from shutil import copy
+import winsound
 
 #-------------------------------------------------------------------------------
 # 1-4: Gets necessary metadata from xml file
@@ -91,7 +92,7 @@ def sort_file(xml_file):
     new_directory = make_nested_directory(file_metadata)
     file_name = file_metadata["headline"].lower()
     translation_table = file_name.maketrans("""<>:"/|?*""", """--------""")
-    file_name.translate(translation_table).replace(" ","_") + ".xml"
+    file_name = file_name.translate(translation_table).replace(" ","_") + ".xml"
 
     copy(xml_file, os.path.join(new_directory, file_name))
 
@@ -99,29 +100,36 @@ def sort_file(xml_file):
 # 8: Implements the code above for all xmls in CWD's containing folder.
 #-------------------------------------------------------------------------------
 
-def get_xml_file_list():
+
+
+def get_folder_list():
     """Returns a list of the relative paths for all .xml files
-    in current working directory and subdirectories"""
-
-    # Build file_list
-    file_list = []
-    for root, dirs, files in os.walk('..'):
-        for file in files:
-            if file.endswith(".xml"):
-                file_list.append(os.path.join(root, file))
-
+    in relevant directory"""
+    return os.listdir(r'..\XML\18380101_20081231')
+    
+def list_xmls_in_folder(folder):
+    print("Now processing", folder)
+    folder_path = os.path.join(r'..\XML\18380101_20081231', folder)
+    file_list = os.listdir(folder_path)
     return file_list
 
-
 def sort_all_xmls():
-    """Sorts all xmls in the CWD's containing folder (recursive)"""
+    """Sorts all xmls in the archive"""
 
     # Sort files
     start_time = time.time()
     files = get_xml_file_list()
-    for file in files:
-        sort_file(file)
+    for folder in get_folder_list():
+        files = list_xmls_in_folder(folder)
+        for file in files:   
+            counter += 1
+            file = os.path.join(r'..\XML\18380101_20081231', folder, file)
+            sort_file(file)
     elapsed = time.time() - start_time
     print(f"Sorted {len(files)} files in {elapsed} seconds")
+    frequency = 2500
+    duration = 500
+    winsound.Beep(frequency, duration)
+    
 
 sort_all_xmls()
