@@ -31,6 +31,7 @@ import time
 import re
 import os
 from shutil import copy
+import string
 import winsound
 
 #-------------------------------------------------------------------------------
@@ -91,9 +92,8 @@ def sort_file(xml_file):
     file_metadata = metadata_getter(xml_file)
     new_directory = make_nested_directory(file_metadata)
     file_name = file_metadata["headline"].lower()
-    translation_table = file_name.maketrans("""<>:"/|?*""", """--------""")
-    file_name = file_name.translate(translation_table).replace(" ","_") + ".xml"
-
+    file_name = file_name.translate(str.maketrans('','', string.punctuation))
+    file_name = file_name.replace(" ","_") + ".xml"
     copy(xml_file, os.path.join(new_directory, file_name))
 
 #-------------------------------------------------------------------------------
