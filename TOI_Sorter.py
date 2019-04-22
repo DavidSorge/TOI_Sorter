@@ -27,12 +27,12 @@ Overall specifications:
 #-------------------------------------------------------------------------------
 
 
-import time
+from time import time
 import re
 import os
 from shutil import copy
 import string
-import winsound
+from winsound import Beep
 
 #-------------------------------------------------------------------------------
 # 1-4: Gets necessary metadata from xml file
@@ -95,7 +95,13 @@ def sort_file(xml_file):
     new_directory = make_nested_directory(file_metadata)
     file_name = file_metadata["headline"].lower()
     file_name = file_name.translate(str.maketrans('','', string.punctuation))
-    file_name = file_name.replace(" ","_") + ".xml"
+    file_name = file_name.replace(" ","_")
+    disalloweds = ["con", "prn", "aux", "nul", "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9", "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9"]
+    if file_name in disalloweds:
+        file_name = file_name + "1"
+    else:
+        pass
+    file_name = file_name + ".xml"
     copy(xml_file, os.path.join(new_directory, file_name))
 
 #-------------------------------------------------------------------------------
@@ -125,20 +131,24 @@ def list_xmls_in_folder(folder):
 def sort_all_xmls():
     """Sorts all xmls in the archive"""
 
-    # Sort files
-    start_time = time.time()
+    # Start timer and counter
+    start_time = time()
     counter = 0
+
+    # Sort files
     for folder in get_folder_list():
         files = list_xmls_in_folder(folder)
         for file in files:   
             counter += 1
             file = os.path.join(r'..\XML\18380101_20081231', folder, file)
             sort_file(file)
-    elapsed = time.time() - start_time
+    
+    # Give performance statistics and beep when done.
+    elapsed = time() - start_time
     print(f"Sorted {counter} files in {elapsed} seconds")
     frequency = 2500
     duration = 500
-    winsound.Beep(frequency, duration)
+    Beep(frequency, duration)
     
 
 sort_all_xmls()
