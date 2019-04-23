@@ -87,12 +87,14 @@ def sort_file(xml_file):
     """
     Saves a copy of an xml file in directory
     \toi_archive_sorted\year\month\day\classification
-    naming it 'headline.xml', after dropping
-    case distinctions and punctuation.
+    naming it 'headline.xml'.
     """
-
+    
+    # Call earlier functions
     file_metadata = metadata_getter(xml_file)
     new_directory = make_nested_directory(file_metadata)
+    
+    # Construct Windows-compatible file name
     file_name = file_metadata["headline"].lower()
     file_name = file_name.translate(str.maketrans('','', string.punctuation))
     file_name = file_name.replace(" ","_")
