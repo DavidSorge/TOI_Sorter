@@ -107,7 +107,7 @@ def sort_file(xml_file):
     copy(xml_file, os.path.join(new_directory, file_name))
 
 #-------------------------------------------------------------------------------
-# 8: Implements the code above for all xmls in CWD's containing folder.
+# 8: Applies the code above for all xmls in CWD's containing folder.
 #-------------------------------------------------------------------------------
 
 
@@ -152,5 +152,39 @@ def sort_all_xmls():
     duration = 500
     Beep(frequency, duration)
     
+#-------------------------------------------------------------------------------
+# 9: Checks whether all raw files correspond to one and only one sorted file
+#-------------------------------------------------------------------------------
+
+
+def compare(raw_path, sorted_path):
+    """
+    Check whether there are the same number of xml files in
+    raw folder as there are in sorted folder.
+    """
+    
+    # Generate Walk objects for the two directories
+    raw_walk = os.walk(raw_path)
+    sorted_walk = os.walk(sorted_path)
+
+    # Generate a count of the number of files in each walk object
+    raw_files = sum([len(files) for r, d, files in raw_walk])
+    sorted_files = sum([len(files) for r, d, files in sorted_walk])
+
+    # Tell user whether the number of files are the same or not
+    print(f"there are {raw_files} files in the raw folder \n and {sorted_files} in the sorted folder")
+    if raw_files == sorted_files:
+        print("It worked!")
+    else:
+        print("Something went wrong; time to hunt for bugs!")
+
 
 sort_all_xmls()
+
+"""
+# Test code: Only run after you think all files have been sorted.
+
+raw path = r'..\XML'
+sorted_path = r"..\..\toi_archive_sorted"
+compare(raw_path, sorted_path)
+"""
