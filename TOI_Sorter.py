@@ -42,7 +42,7 @@ def metadata_getter(xml_file_path):
     """Places publication date and headline from a given xml file in a library"""
 
     # Read file
-    with open(xml_file_path) as input_file:
+    with open(xml_file_path, encoding = "utf8") as input_file:
         raw_xml = input_file.read()
 
     # Extract Metadata
@@ -162,6 +162,8 @@ def compare(raw_path, sorted_path):
     Check whether there are the same number of xml files in
     raw folder as there are in sorted folder.
     """
+    # Start timer
+    lap_time = time()
     
     # Generate Walk objects for the two directories
     raw_walk = os.walk(raw_path)
@@ -178,13 +180,19 @@ def compare(raw_path, sorted_path):
     else:
         print("Something went wrong; time to hunt for bugs!")
 
+    # Give time to complete and beep when done.
+    elapsed = time() - lap_time
+    print(f"The test took {elapsed} seconds")
+    frequency = 2500
+    duration = 500
+    Beep(frequency, duration)
 
 sort_all_xmls()
 
 """
 # Test code: Only run after you think all files have been sorted.
 
-raw path = r'..\XML'
+raw_path = r'..\XML'
 sorted_path = r"..\..\toi_archive_sorted"
 compare(raw_path, sorted_path)
 """
