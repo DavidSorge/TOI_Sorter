@@ -11,15 +11,15 @@
 
 """
 Overall specifications:
-1:☺ Import an XML file from toi_archive_raw
+1:☺ Import an XML file from input_directory
 2:☺ Grab the year, month, and day of publication.
 3:☺ Grab the Article Classification for the article.
 4:☺ Grab the Headline for the Article
-5:☺ Within toi_archive_sorted, create this nested folder structure:
-     \toi_archive_sorted\year\month\day\classification
-6:☺ Write a copy of that XML file into the appropriate folder
+5:☺ Within output_directory, create this nested folder structure:
+     \output_directory\year\month\day\classification
+6:☺ Move that XML file into the appropriate folder
 7:☺ (re)name the article with its headline
-8:☺ Do this for all the xml files in containing folder's containing folder.
+8:☺ Do this for all the xml files in input_directory
 """
 
 #-------------------------------------------------------------------------------
@@ -157,6 +157,6 @@ def sort_all_xmls(input_directory, output_directory):
 #-------------------------------------------------------------------------------
 
 if __name__ == '__main__':
-    input_directory = r'C:\Users\David\Documents\Research\toi-archive-subsample\XML'
-    output_directory = r'C:\Users\David\Documents\Research\toi-archive-subsample\test2'
+    input_directory = r'/home/dsorge/toi_archive_raw/XML'
+    output_directory = r'/home/dsorge/toi_archive_sorted'
     sort_all_xmls(input_directory, output_directory)
