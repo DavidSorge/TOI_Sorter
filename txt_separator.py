@@ -165,7 +165,7 @@ def process_all_zips(zip_files_path):
     """Find all zip files in a folder, add them to a list, and process all"""
     
     for zip_file_name in os.listdir(zip_files_path):
-    
+        print("Now processing:", zip_file_name)
         zip_file_path = os.path.join(zip_files_path, zip_file_name)
     
         for xml_and_path in xml_generator(zip_file_path):
@@ -183,21 +183,5 @@ def process_all_zips(zip_files_path):
 if __name__ == "__main__":
     
     #define which zip file to use REPLACE LATER WITH FOR-LOOP
-    zip_files_path = r'..\ZIP'
+    zip_files_path = os.path.join('..','ZIP')
     process_all_zips(zip_files_path)
-
-    
-        
-
-
-
-
-
-            
-    
-    
-        
-
-
-
-    
