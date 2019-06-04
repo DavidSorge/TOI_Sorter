@@ -75,11 +75,7 @@ def get_data(xml_and_path):
     xml_data["pub_date"] = parsed_xml.numericpubdate.string
     xml_data["start_page"] = parsed_xml.startpage.string
     xml_data["url"] = parsed_xml.urldocview.string
-    xml_data["fulltext"] = parsed_xml.fulltext.string
-    
-    # Grab the original file location
-    xml_data["zipped_loc"] = zipped_loc
-    
+
     # Grab all objecttype tags and stick them in one field, separated by ;
     object_types = ''
     for type_tag in parsed_xml.find_all('objecttype'):
@@ -88,7 +84,17 @@ def get_data(xml_and_path):
         else:
             object_types = object_types + ';' + type_tag.string.lower()
     xml_data["objecttypes"] = object_types
+
+    # Grab the full text and story it in the library
+    try:
+        xml_data["fulltext"] = parsed_xml.fulltext.string
+    except:
+        print(xml_data["record_id"], "has no text. It is a", xml_data["objecttypes"])
+        xml_data["fulltext"] = "No Text"
     
+    # Grab the original file location
+    xml_data["zipped_xml_loc"] = zipped_loc
+        
     return xml_data
 
     
@@ -101,31 +107,37 @@ def write_txt(xml_data):
     (additionally saves a csv version of the pathname in xml_data library)
     """
     
+    # Make TXT directory
+    if not os.path.exists(os.path.join('..', 'TXT')):
+        os.mkdir(os.path.join('..','TXT'))
     
-    
-    # Make the directory
+    # Compose the archive name
     pub_year = xml_data["pub_date"]
     pub_year = pub_year[0:4]
-    newpath = os.path.join('..', 'TXT', pub_year)
-    if not os.path.exists(newpath):
-        os.makedirs(newpath)
     
-    # Compose the filepath
+    
+    # Make archive path
+    zip_path = os.path.join('..', 'TXT', pub_year + '.zip')
+    
+    # Compose the file name
     file_name = xml_data["headline"].lower()
     file_name = file_name[0:51]
     file_name = file_name.translate(str.maketrans('','', punctuation))
     file_name = file_name.replace(" ","_")
-    
     file_name = xml_data["record_id"] + file_name + '.txt'
     
-    txtpath = os.path.join(newpath, file_name)
+    fulltext = xml_data["fulltext"]
     
-    # Write the file
-    with open(txtpath, 'w') as output_file:
-        output_file.write(xml_data["fulltext"])
-    
+    # Create the archive, and write the txt file in the archive
+    with zipfile.ZipFile(zip_path, 'a') as output_archive:
+        output_archive.writestr(file_name, fulltext) 
+            
+        
+        
     # Add the path to the dictionary, return new dictionary
-    xml_data["txt_path"] = txtpath
+    xml_data["txt_zip"] = zip_path
+    xml_data["txt_file"] = file_name
+    
     return xml_data
 
 def write_header_row(xml_data):
@@ -136,7 +148,7 @@ def write_header_row(xml_data):
     with open('../TOI_metadata.csv', 'w', newline='') as single_file:
         
         # Write the header row
-        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_loc', 'txt_path', 'objecttypes']
+        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_xml_loc', 'txt_zip', 'txt_file', 'objecttypes']
         writer = csv.DictWriter(single_file, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -148,7 +160,7 @@ def write_csv_row(xml_data):
     
     csvpath = os.path.join('..', 'TOI_metadata.csv')
     with open(csvpath, 'a', newline = '') as csvfile:
-        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_loc', 'txt_path', 'objecttypes']
+        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_xml_loc', 'txt_zip', 'txt_file', 'objecttypes']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writerow({fn: xml_data[fn] for fn in fieldnames})
 
@@ -161,18 +173,14 @@ def process_all_zips(zip_files_path):
         firsttime = True
         
         for xml_and_path in xml_generator(zip_file_path):
-            try:
-                xml_data = get_data(xml_and_path)
-                xml_data = write_txt(xml_data)
-                if firsttime:
-                    write_header_row(xml_data)
-                    firsttime = False
-                else:
-                    pass
-                write_csv_row(xml_data)
-            except:
+            xml_data = get_data(xml_and_path)
+            xml_data = write_txt(xml_data)
+            if firsttime:
+                write_header_row(xml_data)
+                firsttime = False
+            else:
                 pass
-
+            write_csv_row(xml_data)
         
 #-------------------------------------------------------------------------------
 # Globals and Calls
