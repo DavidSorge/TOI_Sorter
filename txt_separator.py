@@ -101,6 +101,8 @@ def write_txt(xml_data):
     (additionally saves a csv version of the pathname in xml_data library)
     """
     
+    
+    
     # Make the directory
     pub_year = xml_data["pub_date"]
     pub_year = pub_year[0:4]
