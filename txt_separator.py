@@ -20,12 +20,12 @@ Created on Fri May 31 16:15:05 2019
 #-------------------------------------------------------------------------------
 # Imports
 #-------------------------------------------------------------------------------
+
 import zipfile
 import bs4
 import os
 from string import punctuation
 import csv
-from shutil import rmtree
 
 #-------------------------------------------------------------------------------
 # Definitions
@@ -114,11 +114,9 @@ def write_txt(xml_data):
     file_name = file_name.translate(str.maketrans('','', punctuation))
     file_name = file_name.replace(" ","_")
     
-    file_name = xml_data["record_id"] + file_name
-    file_name_txt = file_name + '.txt'
-    file_name_csv = file_name + '.csv'
+    file_name = xml_data["record_id"] + file_name + '.txt'
     
-    txtpath = os.path.join(newpath, file_name_txt)
+    txtpath = os.path.join(newpath, file_name)
     
     # Write the file
     with open(txtpath, 'w') as output_file:
@@ -126,56 +124,53 @@ def write_txt(xml_data):
     
     # Add the path to the dictionary, return new dictionary
     xml_data["txt_path"] = txtpath
-    xml_data["file_name_csv"] = file_name_csv
     return xml_data
-    
-def write_csv_row(xml_data):
-    """
-    Using an xml_data file as output by write_txt,
-    writes a csv file with the content.
-    """
-    newpath = os.path.join('..', 'CSV')
-    if not os.path.exists(newpath):
-        os.mkdir(newpath)
-    
-    csvpath = os.path.join(newpath, xml_data['file_name_csv'])
-    with open(csvpath, 'w', newline = '') as csvfile:
-        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_loc', 'objecttypes', 'txt_path']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writerow({fn: xml_data[fn] for fn in fieldnames})
 
-def concatenate_csvs(xml_data):
+def write_header_row(xml_data):
+    """
+    writes a header row for the TOI_metadata file
+    """
+    
     with open('../TOI_metadata.csv', 'w', newline='') as single_file:
         
         # Write the header row
-        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_loc', 'objecttypes', 'txt_path']
+        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_loc', 'txt_path', 'objecttypes']
         writer = csv.DictWriter(single_file, fieldnames=fieldnames)
         writer.writeheader()
-        
-        # Concatenate the data
-    with open('../TOI_metadata.csv', 'a') as single_file:
-        files_list = os.listdir(os.path.join('..','CSV'))
-        for file in files_list:
-            with open(os.path.join('..', 'CSV', file), 'r') as in_file:
-                for line in in_file:
-                    single_file.write(line)
-    rmtree(os.path.join('..', 'CSV'))
-      
+
+def write_csv_row(xml_data):
+    """
+    Using an xml_data file as output by write_txt,
+    writes a line in the TOI_metadata file containing the relevant fieldnames
+    """    
+    
+    csvpath = os.path.join('..', 'TOI_metadata.csv')
+    with open(csvpath, 'a', newline = '') as csvfile:
+        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_loc', 'txt_path', 'objecttypes']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writerow({fn: xml_data[fn] for fn in fieldnames})
+
 def process_all_zips(zip_files_path):
     """Find all zip files in a folder, add them to a list, and process all"""
     
     for zip_file_name in os.listdir(zip_files_path):
         print("Now processing:", zip_file_name)
         zip_file_path = os.path.join(zip_files_path, zip_file_name)
-    
+        firsttime = True
+        
         for xml_and_path in xml_generator(zip_file_path):
             try:
                 xml_data = get_data(xml_and_path)
                 xml_data = write_txt(xml_data)
+                if firsttime:
+                    write_header_row(xml_data)
+                    firsttime = False
+                else:
+                    pass
                 write_csv_row(xml_data)
             except:
                 pass
-    concatenate_csvs(xml_data)
+
         
 #-------------------------------------------------------------------------------
 # Globals and Calls
