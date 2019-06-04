@@ -88,9 +88,11 @@ def get_data(xml_and_path):
     # Grab the full text and story it in the library
     try:
         xml_data["fulltext"] = parsed_xml.fulltext.string
+        xml_data["note"] = ''
     except:
         print(xml_data["record_id"], "has no text. It is a", xml_data["objecttypes"])
         xml_data["fulltext"] = "No Text"
+        xml_data["note"] = 'No text'
     
     # Grab the original file location
     xml_data["zipped_xml_loc"] = zipped_loc
@@ -148,7 +150,7 @@ def write_header_row(xml_data):
     with open('../TOI_metadata.csv', 'w', newline='') as single_file:
         
         # Write the header row
-        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_xml_loc', 'txt_zip', 'txt_file', 'objecttypes']
+        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_xml_loc', 'txt_zip', 'txt_file', 'note', 'objecttypes']
         writer = csv.DictWriter(single_file, fieldnames=fieldnames)
         writer.writeheader()
 
@@ -160,7 +162,7 @@ def write_csv_row(xml_data):
     
     csvpath = os.path.join('..', 'TOI_metadata.csv')
     with open(csvpath, 'a', newline = '') as csvfile:
-        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_xml_loc', 'txt_zip', 'txt_file', 'objecttypes']
+        fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_xml_loc', 'txt_zip', 'txt_file', 'note', 'objecttypes']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writerow({fn: xml_data[fn] for fn in fieldnames})
 
