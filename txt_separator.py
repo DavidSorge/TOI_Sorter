@@ -189,6 +189,5 @@ def process_all_zips(zip_files_path):
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
     
-    #define which zip file to use REPLACE LATER WITH FOR-LOOP
     zip_files_path = os.path.join('..','ZIP')
     process_all_zips(zip_files_path)
