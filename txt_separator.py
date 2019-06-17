@@ -26,6 +26,7 @@ import bs4
 import os
 from string import punctuation
 import csv
+import pandas
 
 #-------------------------------------------------------------------------------
 # Definitions
@@ -169,10 +170,10 @@ def write_csv_row(xml_data):
 def process_all_zips(zip_files_path):
     """Find all zip files in a folder, add them to a list, and process all"""
     
+    firsttime = True
     for zip_file_name in os.listdir(zip_files_path):
         print("Now processing:", zip_file_name)
         zip_file_path = os.path.join(zip_files_path, zip_file_name)
-        firsttime = True
         
         for xml_and_path in xml_generator(zip_file_path):
             xml_data = get_data(xml_and_path)
@@ -183,11 +184,35 @@ def process_all_zips(zip_files_path):
             else:
                 pass
             write_csv_row(xml_data)
+
+# These bits need testing, and they need to be integrated into functions above.
+
+def load_completed_ids():
+    """
+    Open the TOI_metadata csv file created by an interrupted version
+    of this script, return a dataframe containing the record_ids of xml files
+    already processed.
+    """
+
+    csvpath = os.path.join('..', 'TOI_metadata.csv')
+    df = pandas.read_csv(csvpath)
+    df = df[['record_id']]
+    return df
+
+def is_processed(xml_file, df):
+    """
+    For a given xml_file, use the file name to check whether the file has a 
+    corresponding entry in the input dataframe.
+    """
+    file_name_id = os.path.splitext(xml_file)[0]
+    is_processed = df.isin([file_name_id]).any()
+    return is_processed
         
 #-------------------------------------------------------------------------------
 # Globals and Calls
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
     
+    #define which zip file to use REPLACE LATER WITH FOR-LOOP
     zip_files_path = os.path.join('..','ZIP')
     process_all_zips(zip_files_path)
