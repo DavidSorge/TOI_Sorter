@@ -43,7 +43,7 @@ def get_raw_xml(active_zip_archive, file_of_interest):
         zip_path = active_zip_archive.filename
     return (raw_xml, zip_path, file_of_interest)
 
-def xml_generator(zip_file_path):
+def xml_generator(zip_file_path, df):
     """
     For a given zip archive path, iteratively reads and yields in the contents 
     of each file in the zip archive.
@@ -55,9 +55,26 @@ def xml_generator(zip_file_path):
         
         #run get_raw_xml for each file in the archive
         for file_of_interest in files_list:
-            xml_and_path = get_raw_xml(active_zip_archive, file_of_interest)
-            yield xml_and_path
+            if is_processed(file_of_interest, df):
+                pass
+            else:
+                xml_and_path = get_raw_xml(active_zip_archive, file_of_interest)
+                yield xml_and_path
 
+def xml_generator_unzipped(xml_folder_path):
+	"""
+	For a given folder with unzipped XML files, iteratively reads and yields in
+	the contents of each file.
+	"""
+    for root, dirs, files in os.walk(xml_folder_path):
+        for name in files:
+            zip_path = ''
+            file_of_interest = name            
+            print("Processing:", file_of_interest)
+            with open(os.path.join(root, name), 'r') as input_file:
+                raw_xml = input_file.read()
+            xml_and_path = (raw_xml, zip_path, file_of_interest)
+            yield xml_and_path
 
 def get_data(xml_and_path):
     """
@@ -111,8 +128,8 @@ def write_txt(xml_data):
     """
     
     # Make TXT directory
-    if not os.path.exists(os.path.join('..', 'TXT')):
-        os.mkdir(os.path.join('..','TXT'))
+    if not os.path.exists(r'../TXT'):
+        os.mkdir(r'../TXT')
     
     # Compose the archive name
     pub_year = xml_data["pub_date"]
@@ -120,7 +137,7 @@ def write_txt(xml_data):
     
     
     # Make archive path
-    zip_path = os.path.join('..', 'TXT', pub_year + '.zip')
+    zip_path = os.path.join(r'../TXT', pub_year + '.zip')
     
     # Compose the file name
     file_name = xml_data["headline"].lower()
@@ -148,7 +165,7 @@ def write_header_row(xml_data):
     writes a header row for the TOI_metadata file
     """
     
-    with open('../TOI_metadata.csv', 'w', newline='') as single_file:
+    with open(r'../TOI_metadata.csv', 'w', newline='') as single_file:
         
         # Write the header row
         fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_xml_loc', 'txt_zip', 'txt_file', 'note', 'objecttypes']
@@ -161,13 +178,13 @@ def write_csv_row(xml_data):
     writes a line in the TOI_metadata file containing the relevant fieldnames
     """    
     
-    csvpath = os.path.join('..', 'TOI_metadata.csv')
+    csvpath = r'../TOI_metadata.csv'
     with open(csvpath, 'a', newline = '') as csvfile:
         fieldnames = ['record_id', 'headline', 'pub_date', 'start_page', 'url', 'zipped_xml_loc', 'txt_zip', 'txt_file', 'note', 'objecttypes']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writerow({fn: xml_data[fn] for fn in fieldnames})
 
-def process_all_zips(zip_files_path):
+def process_all_zips(zip_files_path, df):
     """Find all zip files in a folder, add them to a list, and process all"""
     
     firsttime = True
@@ -175,7 +192,7 @@ def process_all_zips(zip_files_path):
         print("Now processing:", zip_file_name)
         zip_file_path = os.path.join(zip_files_path, zip_file_name)
         
-        for xml_and_path in xml_generator(zip_file_path):
+        for xml_and_path in xml_generator(zip_file_path, df):
             xml_data = get_data(xml_and_path)
             xml_data = write_txt(xml_data)
             if firsttime:
@@ -184,8 +201,20 @@ def process_all_zips(zip_files_path):
             else:
                 pass
             write_csv_row(xml_data)
+            
+def process_all_xmls(xml_folder_path):
+    firsttime = True
+    for xml_and_path in xml_generator_unzipped(xml_folder_path):
+        xml_data = get_data(xml_and_path)
+        xml_data = write_txt(xml_data)
+        if firsttime:
+            write_header_row(xml_data)
+            firsttime = False
+        else:
+            pass
+        write_csv_row(xml_data)
 
-# These bits need testing, and they need to be integrated into functions above.
+# These bits need testing, and will eventually need to be integrated into functions above.
 
 def load_completed_ids():
     """
@@ -194,9 +223,12 @@ def load_completed_ids():
     already processed.
     """
 
-    csvpath = os.path.join('..', 'TOI_metadata.csv')
-    df = pandas.read_csv(csvpath)
-    df = df[['record_id']]
+    csvpath = r'../TOI_metadata.csv'
+    if os.path.exists(csvpath):
+        df = pandas.read_csv(csvpath, usecols=['record_id'])
+    else:
+        df = pandas.DataFrame()
+        df['record_id'] = ''
     return df
 
 def is_processed(xml_file, df):
@@ -205,14 +237,17 @@ def is_processed(xml_file, df):
     corresponding entry in the input dataframe.
     """
     file_name_id = os.path.splitext(xml_file)[0]
-    is_processed = df.isin([file_name_id]).any()
+    is_processed = df.isin([file_name_id]).any().values[0]
     return is_processed
         
 #-------------------------------------------------------------------------------
 # Globals and Calls
 #-------------------------------------------------------------------------------
 if __name__ == "__main__":
-    
-    #define which zip file to use REPLACE LATER WITH FOR-LOOP
-    zip_files_path = os.path.join('..','ZIP')
-    process_all_zips(zip_files_path)
+    """
+    df = load_completed_ids()
+    zip_files_path = r'../ZIP'
+    process_all_zips(zip_files_path, df)
+    """
+    xml_folder_path = r'../XML'
+    process_all_xmls(xml_folder_path)
